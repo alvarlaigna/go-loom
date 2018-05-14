@@ -19,3 +19,4 @@ contracts
 example-cli
 genesis.json
 protoc-gen-gogo
+evmexample-cli

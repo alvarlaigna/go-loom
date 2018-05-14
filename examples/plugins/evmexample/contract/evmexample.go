@@ -3,15 +3,9 @@
 package main
 
 import (
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/loomnetwork/go-loom/examples/plugins/evmexample/types"
 	"github.com/loomnetwork/go-loom/plugin"
 	"github.com/loomnetwork/go-loom/plugin/contractpb"
-	"io/ioutil"
-	"math/big"
-	"strconv"
-	"strings"
 )
 
 type EvmExample struct {
@@ -24,56 +18,28 @@ func (c *EvmExample) Meta() (plugin.Meta, error) {
 	}, nil
 }
 
-func (c *EvmExample) SetValue(ctx contractpb.Context, value *types.WrapValue) error {
+func (c *EvmExample) SetValue(ctx contractpb.Context, tx *types.EthTransaction) error {
 	simpleStoreAddr, err := ctx.Resolve("SimpleStore")
 	if err != nil {
 		return err
 	}
-	simpleStoreData, err := ioutil.ReadFile("SimpleStore.abi")
-	if err != nil {
-		return err
-	}
-	abiSimpleStore, err := abi.JSON(strings.NewReader(string(simpleStoreData)))
-	if err != nil {
-		return err
-	}
-	input, err := abiSimpleStore.Pack("set", big.NewInt(value.Value))
-	if err != nil {
-		return err
-	}
 	evmOut := []byte{}
-	err = contractpb.CallEVM(ctx, simpleStoreAddr, input, &evmOut)
+	err = contractpb.CallEVM(ctx, simpleStoreAddr, tx.Data, &evmOut)
 	return err
 }
 
-func (c *EvmExample) GetValue(ctx contractpb.Context, req *types.Dummy) (*types.WrapValue, error) {
+func (c *EvmExample) GetValue(ctx contractpb.Context, tx *types.EthCall) (*types.EthCallResult, error) {
 	simpleStoreAddr, err := ctx.Resolve("SimpleStore")
 	if err != nil {
 		return nil, err
 	}
-	simpleStoreData, err := ioutil.ReadFile("SimpleStore.abi")
-	if err != nil {
-		return nil, err
-	}
-	abiSimpleStore, err := abi.JSON(strings.NewReader(string(simpleStoreData)))
-	if err != nil {
-		return nil, err
-	}
-	input, err := abiSimpleStore.Pack("get")
-	if err != nil {
-		return nil, err
-	}
 	evmOut := []byte{}
-	err = contractpb.CallEVM(ctx, simpleStoreAddr, input, &evmOut)
+	err = contractpb.CallEVM(ctx, simpleStoreAddr, tx.Data, &evmOut)
 	if err != nil {
 		return nil, err
 	}
-	value, err := strconv.ParseInt(common.Bytes2Hex(evmOut), 16, 64)
-	if err != nil {
-		return nil, err
-	}
-	return &types.WrapValue{
-		Value: value,
+	return &types.EthCallResult{
+		Data: evmOut,
 	}, err
 }
 

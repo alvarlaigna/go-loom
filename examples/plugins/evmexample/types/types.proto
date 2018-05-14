@@ -1,8 +1,16 @@
 syntax = "proto3";
 
-message Dummy {
+message EthTransaction {
+	uint32 version = 1;
+	bytes data = 2;
 }
 
-message WrapValue {
-    int64 value = 1;
+message EthCall {
+	uint32 version = 1;
+	bytes data = 2;
+}
+
+message EthCallResult {
+    uint32 version = 1;
+    bytes data = 2;
 }
